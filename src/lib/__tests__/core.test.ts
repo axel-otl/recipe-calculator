@@ -5,8 +5,8 @@ import { baseKcalPerServing, planMeals, priceRecipe } from "../planner";
 import { buildPriceTable, offerUnitPrice } from "../pricing";
 import { sampleOffers, sampleStores } from "../providers/sample";
 import { RECIPES } from "../recipes";
-import { buildShoppingList, formatAmount } from "../shoppingList";
-import type { Offer, PlanSettings, Store } from "../types";
+import { buildShoppingList, formatAmount, packagesFor } from "../shoppingList";
+import type { Offer, PlanSettings, ShoppingItem, Store } from "../types";
 
 const SETTINGS: PlanSettings = {
   budget: 600,
@@ -188,5 +188,41 @@ describe("formatAmount", () => {
     [2.2, "st", "3 st"],
   ] as const)("%s %s → %s", (amount, unit, expected) => {
     expect(formatAmount(amount, unit)).toBe(expected);
+  });
+});
+
+describe("packagesFor", () => {
+  const item = (key: string, amount: number, extra: Partial<Offer> | null): ShoppingItem => {
+    const ingredient = getIngredient(key);
+    const priced = extra
+      ? { key, unitPrice: 80, source: "offer" as const, offer: offer(ingredient.name, extra), store }
+      : { key, unitPrice: ingredient.basePrice, source: "estimate" as const };
+    return { ingredient, amount, cost: 0, price: priced, recipes: [] };
+  };
+
+  it("buys enough of the offer's packages", () => {
+    const packages = packagesFor(item("notfars", 1200, { price: 45, packageSize: "500 g" }))!;
+    expect(packages).toEqual({ count: 3, size: 500, cost: 135 });
+  });
+
+  it("handles piece packages like eggs", () => {
+    const packages = packagesFor(item("agg", 14, { price: 42, packageSize: "12-p" }))!;
+    expect(packages).toMatchObject({ count: 2, size: 12, cost: 84 });
+  });
+
+  it("skips loose goods sold by weight", () => {
+    expect(packagesFor(item("lok", 600, { price: 16, priceLabel: "16 kr/kg" }))).toBeUndefined();
+  });
+
+  it("uses a typical package size without an offer", () => {
+    // Pasta: 500 g packages at 25 kr/kg
+    expect(packagesFor(item("pasta", 760, null))).toEqual({ count: 2, size: 500, cost: 25 });
+  });
+
+  it("makes whole-package totals at least the recipe cost", () => {
+    const stores = sampleStores().filter((s) => s.city === "Uppsala");
+    const table = buildPriceTable(stores.flatMap((s) => sampleOffers(s, new Date("2026-10-20"))), stores);
+    const groups = buildShoppingList(planMeals(RECIPES, SETTINGS, table).meals, SETTINGS);
+    for (const group of groups) expect(group.packageTotal).toBeGreaterThanOrEqual(group.total - 0.01);
   });
 });

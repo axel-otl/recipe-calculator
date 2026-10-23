@@ -158,10 +158,21 @@ export interface MealPlan {
   alternatives: PricedRecipe[];
 }
 
+export interface PackagePurchase {
+  count: number;
+  /** Size of one package, in the ingredient's unit */
+  size: number;
+  /** Cost of all packages, SEK */
+  cost: number;
+}
+
 export interface ShoppingItem {
   ingredient: Ingredient;
   amount: number;
+  /** Cost of the amount the recipes use */
   cost: number;
+  /** Whole packages to buy; undefined for goods sold by weight */
+  packages?: PackagePurchase;
   price: IngredientPrice;
   recipes: string[];
 }
@@ -172,4 +183,6 @@ export interface ShoppingGroup {
   title: string;
   items: ShoppingItem[];
   total: number;
+  /** What the group costs when buying whole packages */
+  packageTotal: number;
 }

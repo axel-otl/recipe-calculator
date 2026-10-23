@@ -6,6 +6,8 @@ import { CHAIN_LABELS, type MealPlan, type PlanSettings, type PricedRecipe } fro
 
 interface Props {
   plan: MealPlan;
+  /** What the plan's shopping list costs in whole packages */
+  packageTotal: number;
   settings: PlanSettings;
   onSwap: (recipeId: string) => void;
   onResetSwaps: () => void;
@@ -123,7 +125,12 @@ export default function MealPlanView(props: Props) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <Stat label="Total cost" value={formatSek(plan.totalCost)} tone={plan.withinBudget ? undefined : "warn"} />
+        <Stat
+          label="Total cost"
+          value={formatSek(plan.totalCost)}
+          note={`(${formatSek(props.packageTotal)} in whole packages)`}
+          tone={plan.withinBudget ? undefined : "warn"}
+        />
         <Stat label="Budget left" value={formatSek(settings.budget - plan.totalCost)} tone={plan.withinBudget ? undefined : "warn"} />
         <Stat
           label="Per portion"
@@ -193,12 +200,13 @@ export default function MealPlanView(props: Props) {
   );
 }
 
-function Stat({ label, value, tone }: { label: string; value: string; tone?: "warn" | "deal" }) {
+function Stat({ label, value, note, tone }: { label: string; value: string; note?: string; tone?: "warn" | "deal" }) {
   const color = tone === "warn" ? "text-warn" : tone === "deal" ? "text-deal" : "";
   return (
     <div className="rounded-xl border border-border bg-surface p-3">
       <p className="text-xs text-muted">{label}</p>
       <p className={`text-lg font-semibold ${color}`}>{value}</p>
+      {note && <p className="text-xs text-muted">{note}</p>}
     </div>
   );
 }

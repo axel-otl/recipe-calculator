@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { formatAmount, formatSek, shoppingListText } from "@/lib/shoppingList";
+import { formatAmount, formatPackages, formatSek, shoppingListText } from "@/lib/shoppingList";
 import type { ShoppingGroup } from "@/lib/types";
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 export default function ShoppingListView({ groups, checked, onCheckedChange }: Props) {
   const [copied, setCopied] = useState(false);
   const total = groups.reduce((sum, g) => sum + g.total, 0);
+  const packageTotal = groups.reduce((sum, g) => sum + g.packageTotal, 0);
   const itemCount = groups.reduce((sum, g) => sum + g.items.length, 0);
   const doneCount = groups.flatMap((g) => g.items).filter((i) => checked[i.ingredient.key]).length;
 
@@ -32,7 +33,8 @@ export default function ShoppingListView({ groups, checked, onCheckedChange }: P
     <div className="space-y-4">
       <div className="no-print flex flex-wrap items-center gap-2">
         <p className="flex-1 text-sm text-muted">
-          {doneCount}/{itemCount} items · about {formatSek(total)}
+          {doneCount}/{itemCount} items · about {formatSek(total)}{" "}
+          ({formatSek(packageTotal)} in whole packages)
         </p>
         <button type="button" onClick={copy} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-muted">
           {copied ? "Copied!" : "Copy as text"}
@@ -51,7 +53,10 @@ export default function ShoppingListView({ groups, checked, onCheckedChange }: P
         <section key={group.storeId} className="rounded-xl border border-border bg-surface">
           <header className="flex items-baseline justify-between gap-2 border-b border-border px-4 py-3">
             <h3 className="font-semibold">{group.title}</h3>
-            <span className="shrink-0 text-sm text-muted">≈ {formatSek(group.total)}</span>
+            <span className="shrink-0 text-sm">
+              ≈ {formatSek(group.total)}{" "}
+              <span className="text-muted">({formatSek(group.packageTotal)})</span>
+            </span>
           </header>
           <ul className="divide-y divide-border">
             {group.items.map((item) => {
@@ -76,7 +81,14 @@ export default function ShoppingListView({ groups, checked, onCheckedChange }: P
                       )}
                       <span className="block text-xs text-muted">For: {item.recipes.join(", ")}</span>
                     </span>
-                    <span className="shrink-0 text-muted">{formatSek(item.cost)}</span>
+                    <span className="shrink-0 text-right">
+                      {formatSek(item.cost)}
+                      {item.packages && (
+                        <span className="block text-xs text-muted">
+                          ({formatPackages(item.packages, item.ingredient.unit)}: {formatSek(item.packages.cost)})
+                        </span>
+                      )}
+                    </span>
                   </label>
                 </li>
               );
@@ -85,8 +97,8 @@ export default function ShoppingListView({ groups, checked, onCheckedChange }: P
         </section>
       ))}
       <p className="text-xs text-muted">
-        Costs are for the amounts the recipes use; whole packages may cost more. Items without an offer use estimated
-        regular prices.
+        Costs are for the amounts the recipes use. Grey figures in parentheses are what whole packages cost – leftovers
+        can go towards other meals. Items without an offer use estimated regular prices and typical package sizes.
       </p>
     </div>
   );

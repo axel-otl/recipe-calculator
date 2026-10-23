@@ -57,6 +57,18 @@ export function parsePackageSize(text: string): Quantity | undefined {
   }
 }
 
+/** Converts a package quantity into the ingredient's unit (g, ml or pieces). */
+export function toIngredientAmount(ingredient: Ingredient, quantity: Quantity): number | undefined {
+  const { amount, unit } = quantity;
+  if (ingredient.unit === "st") {
+    if (unit === "st") return amount;
+    return ingredient.pieceGrams && unit === "kg" ? (amount * 1000) / ingredient.pieceGrams : undefined;
+  }
+  // Treat 1 l ≈ 1 kg, as for prices.
+  if (unit === "kg" || unit === "l") return amount * 1000;
+  return ingredient.pieceGrams ? amount * ingredient.pieceGrams : undefined;
+}
+
 /**
  * Converts a price per `unit` into SEK per the ingredient's pricing unit
  * (kg for "g", l for "ml", piece for "st"). Returns undefined when the

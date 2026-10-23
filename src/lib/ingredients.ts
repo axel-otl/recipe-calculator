@@ -87,6 +87,30 @@ export const INGREDIENTS: Ingredient[] = [
 
 export const INGREDIENT_KEYS = INGREDIENTS.map((i) => i.key) as [string, ...string[]];
 
+/**
+ * Typical package size in each ingredient's unit, used to estimate what whole
+ * packages cost when there's no offer with a known package size.
+ */
+const TYPICAL_PACKAGE: Record<string, number> = {
+  kycklingfile: 900, kycklinglarfile: 700, kycklingklubba: 1000, notfars: 500, blandfars: 500,
+  flaskfile: 500, flaskkotlett: 600, bacon: 140, falukorv: 800,
+  laxfile: 400, torsk: 400, rakor: 500, tonfisk: 170,
+  agg: 12, halloumi: 200, tofu: 400, kikartor: 380, linser: 500, bonor: 380, vegofars: 1000,
+  mjolk: 1500, gradde: 250, creme_fraiche: 200, ost: 150, fetaost: 150, mozzarella: 125, smor: 500,
+  yoghurt: 1000, kokosmjolk: 400,
+  pasta: 500, ris: 1000, potatis: 2000, sotpotatis: 1000, nudlar: 250, couscous: 500, tortilla: 8,
+  hamburgerbrod: 4,
+  lok: 1000, vitlok: 50, morot: 1000, paprika: 500, broccoli: 400, blomkal: 600, zucchini: 300,
+  tomat: 500, gurka: 350, sallad: 400, spenat: 450, champinjoner: 250, arter: 600, majs: 300,
+  avokado: 1, citron: 1,
+  krossade_tomater: 400, tomatpure: 200, pesto: 190, tacosas: 230,
+  olja: 1000, buljong: 6, soja: 150, curry: 50, tacokrydda: 28,
+};
+
+export function typicalPackageSize(ingredient: Ingredient): number {
+  return TYPICAL_PACKAGE[ingredient.key] ?? (ingredient.unit === "st" ? 1 : 500);
+}
+
 const BY_KEY = new Map(INGREDIENTS.map((i) => [i.key, i]));
 
 export function getIngredient(key: string): Ingredient {

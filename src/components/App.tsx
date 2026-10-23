@@ -124,6 +124,7 @@ export default function App() {
     [allRecipes, settings, priceTable, excluded],
   );
   const shoppingGroups = useMemo(() => buildShoppingList(plan.meals, settings), [plan.meals, settings]);
+  const packageTotal = shoppingGroups.reduce((sum, g) => sum + g.packageTotal, 0);
 
   function toggleStore(store: Store) {
     setSelected((current) => {
@@ -227,6 +228,7 @@ export default function App() {
           {tab === "plan" && (
             <MealPlanView
               plan={plan}
+              packageTotal={packageTotal}
               settings={settings}
               onSwap={swap}
               onResetSwaps={() => setExcluded([])}
