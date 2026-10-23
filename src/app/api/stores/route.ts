@@ -14,6 +14,6 @@ export async function GET(request: Request) {
     return NextResponse.json({ error: "lat and lng are required" }, { status: 400 });
   }
 
-  const { data, notices } = await listStores(source);
+  const { data, notices } = await listStores(source, { lat, lng });
   return NextResponse.json({ stores: storesNear(data, lat, lng, radius), notices });
 }

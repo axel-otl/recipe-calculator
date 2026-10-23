@@ -1,4 +1,5 @@
-import type { Chain, Offer, PriceUnit, Store } from "../types";
+import type { Chain, Offer, Store } from "../types";
+import { asObject, asString, fetchJson, parseDate, parsePrice, parseUnit } from "./http";
 import type { StoreProvider } from "./types";
 
 /**
@@ -12,51 +13,6 @@ const BASE_URLS: Partial<Record<Chain, string>> = {
   willys: "https://www.willys.se",
   hemkop: "https://www.hemkop.se",
 };
-
-const HEADERS = {
-  Accept: "application/json",
-  "User-Agent": "Mozilla/5.0 (compatible; recipe-calculator/0.1)",
-};
-
-const REQUEST_TIMEOUT_MS = 15_000;
-
-async function fetchJson(url: string): Promise<unknown> {
-  const response = await fetch(url, {
-    headers: HEADERS,
-    signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS),
-    // Let Next.js cache responses for an hour.
-    next: { revalidate: 3600 },
-  });
-  if (!response.ok) throw new Error(`${url} responded ${response.status}`);
-  return response.json();
-}
-
-type Json = Record<string, unknown>;
-
-const asObject = (value: unknown): Json | undefined =>
-  value && typeof value === "object" && !Array.isArray(value) ? (value as Json) : undefined;
-
-const asString = (value: unknown): string | undefined =>
-  typeof value === "string" && value.trim() ? value.trim() : typeof value === "number" ? String(value) : undefined;
-
-/** Parses numbers like 49.9, "49,90", "49,90 kr" or "98,00 kr/kg". */
-export function parsePrice(value: unknown): number | undefined {
-  if (typeof value === "number") return Number.isFinite(value) ? value : undefined;
-  const object = asObject(value);
-  if (object) return parsePrice(object.value ?? object.formattedValue);
-  if (typeof value !== "string") return undefined;
-  const match = value.replace(/\s/g, "").match(/(\d+(?:[.,]\d+)?)/);
-  return match ? parseFloat(match[1].replace(",", ".")) : undefined;
-}
-
-export function parseUnit(value: unknown): PriceUnit | undefined {
-  const text = asString(value)?.toLowerCase();
-  if (!text) return undefined;
-  if (/\bkg\b|kilo/.test(text)) return "kg";
-  if (/\bl\b|liter|litre/.test(text)) return "l";
-  if (/\bst\b|styck|\bp\b|förp/.test(text)) return "st";
-  return undefined;
-}
 
 export function parseStores(data: unknown, chain: Chain): Store[] {
   const list = Array.isArray(data) ? data : (asObject(data)?.stores ?? asObject(data)?.results);
@@ -85,14 +41,6 @@ export function parseStores(data: unknown, chain: Chain): Store[] {
     });
   }
   return stores;
-}
-
-function parseValidTo(value: unknown): string | undefined {
-  if (typeof value === "number") return new Date(value).toISOString().slice(0, 10);
-  const text = asString(value);
-  if (!text) return undefined;
-  const date = new Date(text);
-  return Number.isNaN(date.getTime()) ? undefined : date.toISOString().slice(0, 10);
 }
 
 export function parseCampaigns(data: unknown, store: Store): Offer[] {
@@ -138,7 +86,7 @@ export function parseCampaigns(data: unknown, store: Store): Offer[] {
       unitPrice,
       unit,
       regularPrice,
-      validTo: parseValidTo(promotion?.validUntil ?? promotion?.endDate),
+      validTo: parseDate(promotion?.validUntil ?? promotion?.endDate),
     });
   }
   return offers;

@@ -1,16 +1,21 @@
 import { CHAIN_LABELS, type Chain, type DataSource, type Offer, type Store } from "../types";
 import { axfoodProvider } from "./axfood";
+import { coopProvider } from "./coop";
+import { cached } from "./http";
+import { icaProvider } from "./ica";
 import { sampleProvider } from "./sample";
-import type { StoreProvider } from "./types";
+import type { Area, StoreProvider } from "./types";
 
 /**
- * Live providers by chain. ICA, Coop and Lidl have no supported live source
- * yet; add a provider here (for example one backed by a licensed price-data
- * API) to bring them online.
+ * Live providers by chain. Lidl has no supported live source yet; add a
+ * provider here (for example one backed by a licensed price-data API) to
+ * bring it online.
  */
-const LIVE_PROVIDERS: StoreProvider[] = [axfoodProvider("willys"), axfoodProvider("hemkop")];
+const LIVE_PROVIDERS: StoreProvider[] = [axfoodProvider("willys"), axfoodProvider("hemkop"), coopProvider, icaProvider];
 
 const ALL_CHAINS = Object.keys(CHAIN_LABELS) as Chain[];
+const STORES_TTL_MS = 24 * 60 * 60 * 1000;
+const OFFERS_TTL_MS = 60 * 60 * 1000;
 
 export interface ProviderResult<T> {
   data: T;
@@ -29,18 +34,26 @@ export function unsupportedLiveChains(): Chain[] {
 
 const describeError = (error: unknown) => (error instanceof Error ? error.message : String(error));
 
-export async function listStores(source: DataSource): Promise<ProviderResult<Store[]>> {
+const chainNames = (provider: StoreProvider) => provider.chains.map((c) => CHAIN_LABELS[c]).join("/");
+
+function providerStores(provider: StoreProvider, area: Area): Promise<Store[]> {
+  // Area-sensitive providers do their own caching per area.
+  if (provider.areaSensitive) return provider.listStores(area);
+  return cached(`stores:${provider.id}`, STORES_TTL_MS, () => provider.listStores(area));
+}
+
+export async function listStores(source: DataSource, area: Area): Promise<ProviderResult<Store[]>> {
   const notices: string[] = [];
   if (source === "live") {
     const missing = unsupportedLiveChains().map((c) => CHAIN_LABELS[c]);
-    if (missing.length) notices.push(`No live data source for ${missing.join(", ")} yet – switch to sample data to include them.`);
+    if (missing.length) notices.push(`No live data source for ${missing.join(", ")} yet – switch to sample data to include it.`);
   }
-  const results = await Promise.allSettled(providersFor(source).map((p) => p.listStores()));
+  const providers = providersFor(source);
+  const results = await Promise.allSettled(providers.map((p) => providerStores(p, area)));
   const stores: Store[] = [];
   results.forEach((result, index) => {
-    const provider = providersFor(source)[index];
     if (result.status === "fulfilled") stores.push(...result.value);
-    else notices.push(`Couldn't load ${provider.chains.map((c) => CHAIN_LABELS[c]).join("/")} stores: ${describeError(result.reason)}`);
+    else notices.push(`Couldn't load ${chainNames(providers[index])} stores: ${describeError(result.reason)}`);
   });
   return { data: stores, notices };
 }
@@ -52,7 +65,7 @@ export async function getOffers(stores: Store[]): Promise<ProviderResult<Offer[]
     stores.map((store) => {
       const provider = providersFor(store.source).find((p) => p.chains.includes(store.chain));
       if (!provider) return Promise.reject(new Error("no provider for this chain"));
-      return provider.getOffers(store);
+      return cached(`offers:${store.id}`, OFFERS_TTL_MS, () => provider.getOffers(store));
     }),
   );
   results.forEach((result, index) => {

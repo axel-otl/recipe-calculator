@@ -29,12 +29,22 @@ Open http://localhost:3000.
 
 The app has two data sources, and you can switch between them in the app:
 
-- **Live:** real weekly offers from **Willys** and **Hemköp**. It reads the store-list and campaign JSON that their websites use (`src/lib/providers/axfood.ts`). These endpoints aren't a documented public API, so they can change without notice. The parser is defensive, and any failure shows up as a notice in the app instead of breaking it.
+- **Live:** real weekly offers from **ICA**, **Coop**, **Willys** and **Hemköp**. The app reads the same data the chains' own websites load, through endpoints that aren't documented public APIs and can change without notice. The parsers are defensive, and if a chain fails, the app shows a notice instead of breaking.
 - **Sample data:** generated example stores and offers for ICA, Coop, Willys, Hemköp and Lidl in 15 Swedish cities. Store names are marked "(exempel)" and are not real stores. The offers change every week, so you can try the app without network access.
 
-ICA, Coop and Lidl have no live source yet. Matpriskollen aggregates offers across all chains, but it sells that data commercially and has no public API. If you get access (info@matpriskollen.se), or find another licensed source, add a provider:
+How each live chain works:
 
-1. Implement `StoreProvider` (`src/lib/providers/types.ts`): `listStores()` returns stores with coordinates, and `getOffers(store)` returns that store's offers.
+| Chain | Stores | Offers |
+| --- | --- | --- |
+| Willys, Hemköp (`axfood.ts`) | Full store list with coordinates | The store's weekly campaigns |
+| Coop (`coop.ts`) | Coop's e-commerce store list, about 250 stores with online shopping | The store's promotions from Coop's product search. The API keys are public and embedded in coop.se, so they're read from there at runtime and refreshed if rejected. |
+| ICA (`ica.ts`) | ICA's store lookup for the postcode at your location (reverse-geocoded with OpenStreetMap) | The weekly offers embedded in the store's page, `ica.se/erbjudanden/<store-slug>/` |
+
+ICA's sites sit behind bot protection that rate-limits automated traffic. The app makes one page request per store and caches results for an hour, but heavy use can still be blocked for a few minutes. The store slug is built from the store's name and ID, so a store whose page uses a different slug will show a "couldn't load offers" notice.
+
+Lidl has no live source yet. Matpriskollen aggregates offers across all chains, but it sells that data commercially and has no public API. If you get access (info@matpriskollen.se), or find another licensed source, add a provider:
+
+1. Implement `StoreProvider` (`src/lib/providers/types.ts`): `listStores(area)` returns stores with coordinates, and `getOffers(store)` returns that store's offers.
 2. Add it to `LIVE_PROVIDERS` in `src/lib/providers/index.ts`.
 
 Offers are matched to recipe ingredients by keyword (`src/lib/ingredients.ts`, `src/lib/matching.ts`). Two guards stop bad matches: an offer only counts if its price per kg/l/piece is a real discount, and it must be in a plausible range.
@@ -42,7 +52,7 @@ Offers are matched to recipe ingredients by keyword (`src/lib/ingredients.ts`, `
 ## How prices and calories work
 
 - Each ingredient in the catalog has calories and an estimated regular price. When a selected store has an offer for an ingredient, the app uses the cheapest offer instead. Otherwise it uses the estimate, which is shown under "Any store (no current offer)".
-- Recipe costs are for the amounts the recipe uses, not whole packages.
+- Recipe costs are for the amounts the recipe uses. The shopping list also shows what whole packages cost, in grey parentheses, using the offer's package size or a typical one.
 - Portions are scaled between 60% and 160% to approach your calorie goal.
 - The planner prefers cheap meals that use offers and avoids repeating the main ingredient. It also makes sure the remaining meals can still fit the budget.
 
@@ -58,7 +68,7 @@ src/
     planner.ts         Portion scaling, pricing and meal selection
     shoppingList.ts    Shopping list grouping and formatting
     ai.ts              Claude recipe generation (structured output)
-    providers/         Store data sources (live Axfood, sample data)
+    providers/         Store data sources (live ICA, Coop, Axfood; sample data)
 ```
 
 Maps use OpenStreetMap tiles, and place search uses OpenStreetMap Nominatim.

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseCampaigns, parsePrice, parseStores, parseUnit } from "../providers/axfood";
+import { parseCampaigns, parseStores } from "../providers/axfood";
+import { parsePrice, parseUnit } from "../providers/http";
 import type { Store } from "../types";
 
 // Shaped after the JSON the Willys/Hemköp websites load. These endpoints are
