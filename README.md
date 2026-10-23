@@ -29,7 +29,7 @@ Open http://localhost:3000.
 
 The app has two data sources, and you can switch between them in the app:
 
-- **Live:** real weekly offers from **ICA**, **Coop**, **Willys** and **Hemköp**. The app reads the same data the chains' own websites load, through endpoints that aren't documented public APIs and can change without notice. The parsers are defensive, and if a chain fails, the app shows a notice instead of breaking.
+- **Live:** real weekly offers from **ICA**, **Coop**, **Willys**, **Hemköp** and **Lidl**. The app reads the same data the chains' own websites load, through endpoints that aren't documented public APIs and can change without notice. The parsers are defensive, and if a chain fails, the app shows a notice instead of breaking.
 - **Sample data:** generated example stores and offers for ICA, Coop, Willys, Hemköp and Lidl in 15 Swedish cities. Store names are marked "(exempel)" and are not real stores. The offers change every week, so you can try the app without network access.
 
 How each live chain works:
@@ -38,11 +38,12 @@ How each live chain works:
 | --- | --- | --- |
 | Willys, Hemköp (`axfood.ts`) | Full store list with coordinates | The store's weekly campaigns |
 | Coop (`coop.ts`) | Coop's e-commerce store list, about 250 stores with online shopping | The store's promotions from Coop's product search. The API keys are public and embedded in coop.se, so they're read from there at runtime and refreshed if rejected. |
+| Lidl (`lidl.ts`) | Lidl's Swedish store list from the Lidl Plus app's backend | The store's offers from the same backend (no login needed) |
 | ICA (`ica.ts`) | ICA's store lookup for the postcode at your location (reverse-geocoded with OpenStreetMap) | The weekly offers embedded in the store's page, `ica.se/erbjudanden/<store-slug>/` |
 
 ICA's sites sit behind bot protection that rate-limits automated traffic. The app makes one page request per store and caches results for an hour, but heavy use can still be blocked for a few minutes. The store slug is built from the store's name and ID, so a store whose page uses a different slug will show a "couldn't load offers" notice.
 
-Lidl has no live source yet. Matpriskollen aggregates offers across all chains, but it sells that data commercially and has no public API. If you get access (info@matpriskollen.se), or find another licensed source, add a provider:
+To add another source (for example Matpriskollen, which sells aggregated price data but has no public API – info@matpriskollen.se), add a provider:
 
 1. Implement `StoreProvider` (`src/lib/providers/types.ts`): `listStores(area)` returns stores with coordinates, and `getOffers(store)` returns that store's offers.
 2. Add it to `LIVE_PROVIDERS` in `src/lib/providers/index.ts`.

@@ -3,15 +3,18 @@ import { axfoodProvider } from "./axfood";
 import { coopProvider } from "./coop";
 import { cached } from "./http";
 import { icaProvider } from "./ica";
+import { lidlProvider } from "./lidl";
 import { sampleProvider } from "./sample";
 import type { Area, StoreProvider } from "./types";
 
-/**
- * Live providers by chain. Lidl has no supported live source yet; add a
- * provider here (for example one backed by a licensed price-data API) to
- * bring it online.
- */
-const LIVE_PROVIDERS: StoreProvider[] = [axfoodProvider("willys"), axfoodProvider("hemkop"), coopProvider, icaProvider];
+/** Live providers by chain. A chain without one is only available as sample data. */
+const LIVE_PROVIDERS: StoreProvider[] = [
+  axfoodProvider("willys"),
+  axfoodProvider("hemkop"),
+  coopProvider,
+  icaProvider,
+  lidlProvider,
+];
 
 const ALL_CHAINS = Object.keys(CHAIN_LABELS) as Chain[];
 const STORES_TTL_MS = 24 * 60 * 60 * 1000;
@@ -46,7 +49,7 @@ export async function listStores(source: DataSource, area: Area): Promise<Provid
   const notices: string[] = [];
   if (source === "live") {
     const missing = unsupportedLiveChains().map((c) => CHAIN_LABELS[c]);
-    if (missing.length) notices.push(`No live data source for ${missing.join(", ")} yet – switch to sample data to include it.`);
+    if (missing.length) notices.push(`No live data source for ${missing.join(", ")} yet – switch to sample data to include them.`);
   }
   const providers = providersFor(source);
   const results = await Promise.allSettled(providers.map((p) => providerStores(p, area)));

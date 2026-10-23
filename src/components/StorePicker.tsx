@@ -93,7 +93,7 @@ export default function StorePicker(props: Props) {
               type="button"
               onClick={() => props.onSourceChange(s)}
               className={`rounded-md px-2 py-1 ${source === s ? "bg-accent text-white" : "text-muted hover:text-foreground"}`}
-              title={s === "live" ? "Real offers from ICA, Coop, Willys and Hemköp" : "Generated example offers for all chains"}
+              title={s === "live" ? "Real offers from ICA, Coop, Willys, Hemköp and Lidl" : "Generated example offers for all chains"}
             >
               {s === "live" ? "Live" : "Sample data"}
             </button>
@@ -102,7 +102,7 @@ export default function StorePicker(props: Props) {
       </div>
       <p className="text-xs text-muted">
         {source === "live"
-          ? "Live: this week's real offers from ICA, Coop, Willys and Hemköp. Coop lists stores with online shopping."
+          ? "Live: this week's real offers from ICA, Coop, Willys, Hemköp and Lidl. Coop lists stores with online shopping."
           : "Sample data: made-up example stores and offers for ICA, Coop, Willys, Hemköp and Lidl, to try the app out."}
       </p>
 
