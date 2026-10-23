@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useState } from "react";
 import { CHAIN_LABELS, type Chain, type DataSource, type Store, type StoreWithDistance } from "@/lib/types";
 import { CHAIN_COLORS } from "./chainColors";
+import { IS_DEMO } from "./demo";
 
 // Leaflet needs `window`, so the map only renders in the browser.
 const StoreMap = dynamic(() => import("./StoreMap"), {
@@ -86,22 +87,26 @@ export default function StorePicker(props: Props) {
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-2">
         <h2 className="text-lg font-semibold">1. Your stores</h2>
+        {!IS_DEMO && (
         <div className="flex rounded-lg border border-border p-0.5 text-xs" role="group" aria-label="Data source">
           {(["sample", "live"] as const).map((s) => (
             <button
               key={s}
               type="button"
               onClick={() => props.onSourceChange(s)}
-              className={`rounded-md px-2 py-1 ${source === s ? "bg-accent text-white" : "text-muted hover:text-foreground"}`}
+              className={`rounded-md px-2 py-1 ${source === s ? "bg-accent text-on-accent" : "text-muted hover:text-foreground"}`}
               title={s === "live" ? "Real offers from ICA, Coop, Willys, Hemköp and Lidl" : "Generated example offers for all chains"}
             >
               {s === "live" ? "Live" : "Sample data"}
             </button>
           ))}
         </div>
+        )}
       </div>
       <p className="text-xs text-muted">
-        {source === "live"
+        {IS_DEMO
+          ? "Demo: made-up example stores and offers in 15 Swedish cities. Search a city like Uppsala or Malmö."
+          : source === "live"
           ? "Live: this week's real offers from ICA, Coop, Willys, Hemköp and Lidl. Coop lists stores with online shopping."
           : "Sample data: made-up example stores and offers for ICA, Coop, Willys, Hemköp and Lidl, to try the app out."}
       </p>
@@ -117,16 +122,20 @@ export default function StorePicker(props: Props) {
         <button
           type="submit"
           disabled={searching}
-          className="shrink-0 rounded-lg bg-accent px-3 text-sm font-medium text-white hover:bg-accent-strong disabled:opacity-60"
+          className="shrink-0 rounded-lg bg-accent px-3 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:opacity-60"
         >
           Search
         </button>
       </form>
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <button type="button" onClick={useMyLocation} className="text-accent underline-offset-2 hover:underline">
-          Use my location
-        </button>
-        <span className="text-muted">·</span>
+        {!IS_DEMO && (
+          <>
+            <button type="button" onClick={useMyLocation} className="text-accent underline-offset-2 hover:underline">
+              Use my location
+            </button>
+            <span className="text-muted">·</span>
+          </>
+        )}
         <label className="flex items-center gap-1 text-muted">
           Within
           <select

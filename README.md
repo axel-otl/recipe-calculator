@@ -24,6 +24,7 @@ Open http://localhost:3000.
 | `npm run dev` | Development server |
 | `npm run build && npm start` | Production build |
 | `npm test` | Unit tests (Vitest) |
+| `npm run build:demo` | Static one-file demo with sample data, in `demo-dist/index.html` |
 | `npm run lint` / `npm run typecheck` | ESLint / TypeScript |
 
 ## Store data

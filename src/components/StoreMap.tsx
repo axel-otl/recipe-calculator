@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { Circle, CircleMarker, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { CHAIN_LABELS, type StoreWithDistance } from "@/lib/types";
 import { CHAIN_COLORS } from "./chainColors";
+import { IS_DEMO } from "./demo";
 
 interface Props {
   center: { lat: number; lng: number };
@@ -31,10 +32,13 @@ export default function StoreMap({ center, radiusKm, stores, selectedIds, onTogg
       scrollWheelZoom={false}
       className="h-64 w-full rounded-lg border border-border"
     >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
+      {/* The demo page can't load map tiles from other sites, so it shows stores without a base map. */}
+      {!IS_DEMO && (
+        <TileLayer
+          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+        />
+      )}
       <Recenter center={center} radiusKm={radiusKm} />
       <Circle
         center={[center.lat, center.lng]}

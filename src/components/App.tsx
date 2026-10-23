@@ -8,6 +8,7 @@ import { buildPriceTable } from "@/lib/pricing";
 import { RECIPES } from "@/lib/recipes";
 import { buildShoppingList } from "@/lib/shoppingList";
 import type { DataSource, Offer, PlanSettings, Recipe, Store, StoreWithDistance } from "@/lib/types";
+import { IS_DEMO } from "./demo";
 import DietForm from "./DietForm";
 import GoalsForm from "./GoalsForm";
 import MealPlanView from "./MealPlanView";
@@ -189,6 +190,12 @@ export default function App() {
           Pick your stores, set a budget and calorie goal, and get a meal plan built on this week&apos;s offers – with a
           shopping list.
         </p>
+        {IS_DEMO && (
+          <p className="mt-3 rounded-lg bg-accent-soft p-3 text-sm text-accent-strong">
+            This demo uses made-up sample stores and offers. Run the app locally to get this week&apos;s real offers from
+            ICA, Coop, Willys, Hemköp and Lidl, and AI recipes.
+          </p>
+        )}
       </header>
 
       <div className="grid gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
@@ -231,7 +238,7 @@ export default function App() {
                 role="tab"
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id)}
-                className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${tab === t.id ? "bg-accent text-white" : "text-muted hover:bg-surface-muted"}`}
+                className={`flex-1 whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium ${tab === t.id ? "bg-accent text-on-accent" : "text-muted hover:bg-surface-muted"}`}
               >
                 {t.label}
               </button>

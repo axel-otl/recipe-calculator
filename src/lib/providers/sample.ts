@@ -8,7 +8,7 @@ import type { StoreProvider } from "./types";
  * to real stores; offers change every ISO week.
  */
 
-const CITIES: { name: string; lat: number; lng: number }[] = [
+export const SAMPLE_CITIES: { name: string; lat: number; lng: number }[] = [
   { name: "Stockholm", lat: 59.3293, lng: 18.0686 },
   { name: "Göteborg", lat: 57.7089, lng: 11.9746 },
   { name: "Malmö", lat: 55.605, lng: 13.0038 },
@@ -69,7 +69,7 @@ function endOfWeek(date: Date): string {
 
 export function sampleStores(): Store[] {
   const stores: Store[] = [];
-  for (const city of CITIES) {
+  for (const city of SAMPLE_CITIES) {
     for (const chain of Object.keys(STORES_PER_CITY) as Chain[]) {
       for (let n = 0; n < STORES_PER_CITY[chain]; n++) {
         const random = rng(hash(`${city.name}-${chain}-${n}`));

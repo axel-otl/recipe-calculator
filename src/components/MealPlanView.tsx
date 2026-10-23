@@ -180,7 +180,7 @@ export default function MealPlanView(props: Props) {
           type="button"
           onClick={props.onGenerateAi}
           disabled={props.aiLoading}
-          className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-white hover:bg-accent-strong disabled:opacity-60"
+          className="rounded-lg bg-accent px-3 py-2 text-sm font-medium text-on-accent hover:bg-accent-strong disabled:opacity-60"
         >
           {props.aiLoading ? "Creating recipes…" : "Create AI recipes"}
         </button>

@@ -10,6 +10,7 @@
   --accent: #2f7d4a;
   --accent-strong: #236139;
   --accent-soft: #e2f1e6;
+  --on-accent: #ffffff;
   --deal: #c2410c;
   --deal-soft: #fff1e6;
   --warn: #9a6700;
@@ -17,7 +18,7 @@
 }
 
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --background: #121512;
     --surface: #1b1f1b;
     --surface-muted: #232823;
@@ -27,11 +28,32 @@
     --accent: #5cbf7c;
     --accent-strong: #7fd59b;
     --accent-soft: #1f3326;
+  --on-accent: #0f1a12;
+    --on-accent: #0f1a12;
     --deal: #fb923c;
     --deal-soft: #3a2414;
     --warn: #f2c94c;
     --warn-soft: #3a3115;
+    color-scheme: dark;
   }
+}
+
+:root[data-theme="dark"] {
+  --background: #121512;
+  --surface: #1b1f1b;
+  --surface-muted: #232823;
+  --foreground: #e6ebe4;
+  --muted: #9ca898;
+  --border: #2f362e;
+  --accent: #5cbf7c;
+  --accent-strong: #7fd59b;
+  --accent-soft: #1f3326;
+  --on-accent: #0f1a12;
+  --deal: #fb923c;
+  --deal-soft: #3a2414;
+  --warn: #f2c94c;
+  --warn-soft: #3a3115;
+  color-scheme: dark;
 }
 
 @theme inline {
@@ -44,6 +66,7 @@
   --color-accent: var(--accent);
   --color-accent-strong: var(--accent-strong);
   --color-accent-soft: var(--accent-soft);
+  --color-on-accent: var(--on-accent);
   --color-deal: var(--deal);
   --color-deal-soft: var(--deal-soft);
   --color-warn: var(--warn);
@@ -83,6 +106,7 @@ input[type="checkbox"] {
 
 .leaflet-container {
   font-family: var(--font-sans);
+  background: var(--surface-muted);
 }
 
 @media print {

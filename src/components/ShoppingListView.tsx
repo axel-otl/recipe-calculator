@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { formatAmount, formatPackages, formatSek, shoppingListText } from "@/lib/shoppingList";
 import type { ShoppingGroup } from "@/lib/types";
+import { IS_DEMO } from "./demo";
 
 interface Props {
   groups: ShoppingGroup[];
@@ -39,9 +40,11 @@ export default function ShoppingListView({ groups, checked, onCheckedChange }: P
         <button type="button" onClick={copy} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-muted">
           {copied ? "Copied!" : "Copy as text"}
         </button>
-        <button type="button" onClick={() => window.print()} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-muted">
-          Print
-        </button>
+        {!IS_DEMO && (
+          <button type="button" onClick={() => window.print()} className="rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-surface-muted">
+            Print
+          </button>
+        )}
         {doneCount > 0 && (
           <button type="button" onClick={() => onCheckedChange({})} className="text-sm text-muted hover:text-foreground">
             Uncheck all

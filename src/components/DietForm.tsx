@@ -40,7 +40,7 @@ export default function DietForm({ settings, onChange, matching, total }: Props)
               role="radio"
               aria-checked={settings.diet === diet.id}
               onClick={() => onChange({ diet: diet.id })}
-              className={`rounded-md px-2 py-1.5 ${settings.diet === diet.id ? "bg-accent text-white" : "text-muted hover:bg-surface-muted"}`}
+              className={`rounded-md px-2 py-1.5 ${settings.diet === diet.id ? "bg-accent text-on-accent" : "text-muted hover:bg-surface-muted"}`}
             >
               {diet.label}
             </button>
