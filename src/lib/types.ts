@@ -72,8 +72,31 @@ export interface Ingredient {
   pieceGrams?: number;
   /** Cheap staples most kitchens already have (oil, spices, stock cubes) */
   pantry?: boolean;
-  vegetarian: boolean;
   category: IngredientCategory;
+}
+
+/** Things people avoid: animal products by kind, and the common allergens. */
+export type FoodTag =
+  | "beef"
+  | "pork"
+  | "poultry"
+  | "fish"
+  | "shellfish"
+  | "dairy"
+  | "egg"
+  | "gluten"
+  | "nuts"
+  | "peanuts"
+  | "soy";
+
+export type Diet = "none" | "pescetarian" | "vegetarian" | "vegan";
+
+export interface DietSettings {
+  diet: Diet;
+  /** Allergies and other things to leave out */
+  exclude: FoodTag[];
+  /** Specific ingredient keys to leave out */
+  avoidIngredients: string[];
 }
 
 export type IngredientCategory =
@@ -114,7 +137,7 @@ export interface IngredientPrice {
   store?: Store;
 }
 
-export interface PlanSettings {
+export interface PlanSettings extends DietSettings {
   /** Total budget for all meals, SEK */
   budget: number;
   /** Target kcal per portion */
@@ -123,7 +146,6 @@ export interface PlanSettings {
   servings: number;
   /** Number of meals to plan */
   meals: number;
-  vegetarian: boolean;
   /** Leave pantry staples out of costs and the shopping list */
   havePantry: boolean;
 }

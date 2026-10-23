@@ -46,10 +46,6 @@ export default function GoalsForm({ settings, onChange }: Props) {
       </div>
       <div className="space-y-2 text-sm">
         <label className="flex items-center gap-2">
-          <input type="checkbox" checked={settings.vegetarian} onChange={(e) => set({ vegetarian: e.target.checked })} />
-          Vegetarian only
-        </label>
-        <label className="flex items-center gap-2">
           <input type="checkbox" checked={settings.havePantry} onChange={(e) => set({ havePantry: e.target.checked })} />
           I already have oil, spices, garlic and stock cubes
         </label>

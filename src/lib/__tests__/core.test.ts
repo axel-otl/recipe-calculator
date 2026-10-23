@@ -1,19 +1,20 @@
 import { describe, expect, it } from "vitest";
-import { getIngredient, INGREDIENTS } from "../ingredients";
+import { isRecipeAllowed, NO_RESTRICTIONS } from "../diet";
+import { getIngredient, ingredientTags, INGREDIENT_TAGS, INGREDIENTS } from "../ingredients";
 import { matchIngredient, parsePackageSize } from "../matching";
 import { baseKcalPerServing, planMeals, priceRecipe } from "../planner";
 import { buildPriceTable, offerUnitPrice } from "../pricing";
 import { sampleOffers, sampleStores } from "../providers/sample";
 import { RECIPES } from "../recipes";
 import { buildShoppingList, formatAmount, packagesFor } from "../shoppingList";
-import type { Offer, PlanSettings, ShoppingItem, Store } from "../types";
+import type { DietSettings, FoodTag, Offer, PlanSettings, ShoppingItem, Store } from "../types";
 
 const SETTINGS: PlanSettings = {
   budget: 600,
   kcalPerServing: 650,
   servings: 4,
   meals: 5,
-  vegetarian: false,
+  ...NO_RESTRICTIONS,
   havePantry: true,
 };
 
@@ -109,6 +110,20 @@ describe("pricing", () => {
   });
 });
 
+describe("diet data", () => {
+  it("only tags catalog ingredients", () => {
+    for (const key of Object.keys(INGREDIENT_TAGS)) expect(() => getIngredient(key), key).not.toThrow();
+  });
+
+  it("leaves enough built-in recipes for common diets", () => {
+    const count = (restrictions: Partial<DietSettings>) =>
+      RECIPES.filter((r) => isRecipeAllowed(r, { ...NO_RESTRICTIONS, ...restrictions })).length;
+    expect(count({ exclude: ["gluten"] })).toBeGreaterThanOrEqual(5);
+    expect(count({ diet: "vegetarian" })).toBeGreaterThanOrEqual(5);
+    expect(count({ diet: "vegan" })).toBeGreaterThanOrEqual(5);
+  });
+});
+
 describe("recipes", () => {
   it("only reference catalog ingredients", () => {
     for (const recipe of RECIPES) {
@@ -144,11 +159,25 @@ describe("planner", () => {
     expect(plan.totalCost).toBeLessThanOrEqual(SETTINGS.budget);
   });
 
-  it("respects the vegetarian setting", () => {
-    const plan = planMeals(RECIPES, { ...SETTINGS, vegetarian: true }, table);
+  it.each([
+    ["vegetarian diet", { diet: "vegetarian" as const }, ["beef", "pork", "poultry", "fish", "shellfish"]],
+    ["vegan diet", { diet: "vegan" as const }, ["dairy", "egg", "fish", "poultry"]],
+    ["nut and gluten allergies", { exclude: ["nuts", "gluten"] as FoodTag[] }, ["nuts", "gluten"]],
+  ])("respects %s", (_, restrictions, forbidden) => {
+    const plan = planMeals(RECIPES, { ...SETTINGS, ...restrictions }, table);
+    expect(plan.meals.length).toBeGreaterThan(0);
     for (const meal of plan.meals) {
-      expect(meal.lines.every((l) => l.ingredient.vegetarian)).toBe(true);
+      for (const line of meal.lines) {
+        expect(ingredientTags(line.ingredient.key).filter((t) => forbidden.includes(t)), line.ingredient.key).toEqual([]);
+      }
     }
+  });
+
+  it("leaves out specific ingredients", () => {
+    const plan = planMeals(RECIPES, { ...SETTINGS, avoidIngredients: ["lok", "potatis"] }, table);
+    const used = plan.meals.flatMap((m) => m.lines.map((l) => l.ingredient.key));
+    expect(used).not.toContain("lok");
+    expect(used).not.toContain("potatis");
   });
 
   it("flags plans that can't fit the budget", () => {

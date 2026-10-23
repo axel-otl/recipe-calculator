@@ -1,10 +1,11 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { isIngredientAllowed } from "@/lib/diet";
 import { getIngredient } from "@/lib/ingredients";
 import { offerUnitPrice } from "@/lib/pricing";
 import { formatSek } from "@/lib/shoppingList";
-import { CHAIN_LABELS, type Offer, type Store } from "@/lib/types";
+import { CHAIN_LABELS, type DietSettings, type Offer, type Store } from "@/lib/types";
 import { CHAIN_COLORS } from "./chainColors";
 
 interface Props {
@@ -12,9 +13,10 @@ interface Props {
   stores: Store[];
   loading: boolean;
   notices: string[];
+  dietSettings: DietSettings;
 }
 
-export default function OffersView({ offers, stores, loading, notices }: Props) {
+export default function OffersView({ offers, stores, loading, notices, dietSettings }: Props) {
   const [query, setQuery] = useState("");
   const [onlyUsable, setOnlyUsable] = useState(true);
   const storesById = useMemo(() => new Map(stores.map((s) => [s.id, s])), [stores]);
@@ -22,7 +24,8 @@ export default function OffersView({ offers, stores, loading, notices }: Props) 
   const rows = useMemo(() => {
     const q = query.trim().toLowerCase();
     return offers
-      .filter((o) => !onlyUsable || o.ingredientKey)
+      // Recipe ingredients that the diet and exclusions allow.
+      .filter((o) => !onlyUsable || (o.ingredientKey && isIngredientAllowed(getIngredient(o.ingredientKey), dietSettings)))
       .filter((o) => !q || o.name.toLowerCase().includes(q) || o.brand?.toLowerCase().includes(q))
       .map((o) => {
         const ingredient = o.ingredientKey ? getIngredient(o.ingredientKey) : undefined;
@@ -31,7 +34,7 @@ export default function OffersView({ offers, stores, loading, notices }: Props) 
         return { offer: o, ingredient, discount };
       })
       .sort((a, b) => (b.discount ?? -1) - (a.discount ?? -1));
-  }, [offers, query, onlyUsable]);
+  }, [offers, query, onlyUsable, dietSettings]);
 
   if (stores.length === 0) return <p className="text-sm text-muted">Select stores to see their offers.</p>;
 
@@ -53,7 +56,7 @@ export default function OffersView({ offers, stores, loading, notices }: Props) 
         />
         <label className="flex items-center gap-2 text-sm">
           <input type="checkbox" checked={onlyUsable} onChange={(e) => setOnlyUsable(e.target.checked)} />
-          Only recipe ingredients
+          Only ingredients I can use
         </label>
       </div>
       <p className="text-xs text-muted">

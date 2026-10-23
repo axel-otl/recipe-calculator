@@ -1,13 +1,10 @@
+import { isRecipeAllowed } from "./diet";
 import { getIngredient } from "./ingredients";
 import { amountCost, amountKcal, priceFor, type PriceTable } from "./pricing";
 import type { MealPlan, PlanSettings, PricedIngredientLine, PricedRecipe, Recipe } from "./types";
 
 const MIN_PORTION_SCALE = 0.6;
 const MAX_PORTION_SCALE = 1.6;
-
-export function isVegetarian(recipe: Recipe): boolean {
-  return recipe.ingredients.every((i) => getIngredient(i.key).vegetarian);
-}
 
 export function baseKcalPerServing(recipe: Recipe): number {
   const total = recipe.ingredients.reduce((sum, i) => sum + amountKcal(getIngredient(i.key), i.amount), 0);
@@ -72,7 +69,7 @@ export function planMeals(
 ): MealPlan {
   const candidates = recipes
     .filter((r) => !excludedIds.includes(r.id))
-    .filter((r) => !settings.vegetarian || isVegetarian(r))
+    .filter((r) => isRecipeAllowed(r, settings))
     .map((r) => priceRecipe(r, settings, table))
     .sort((a, b) => score(a, settings) - score(b, settings));
 

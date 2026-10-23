@@ -2,12 +2,17 @@ import Anthropic from "@anthropic-ai/sdk";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { generateRecipes } from "@/lib/ai";
+import { DIETS, EXCLUSIONS } from "@/lib/diet";
+import { hasIngredient } from "@/lib/ingredients";
+import type { Diet, FoodTag } from "@/lib/types";
 
 const BodySchema = z.object({
   offerKeys: z.array(z.string().max(40)).max(80),
   kcalPerServing: z.number().min(100).max(3000),
   budgetPerServing: z.number().min(1).max(1000),
-  vegetarian: z.boolean(),
+  diet: z.enum(DIETS.map((d) => d.id) as [Diet, ...Diet[]]),
+  exclude: z.array(z.enum(EXCLUSIONS.map((e) => e.id) as [FoodTag, ...FoodTag[]])).max(20),
+  avoidIngredients: z.array(z.string().refine(hasIngredient, "unknown ingredient")).max(80),
   count: z.number().int().min(1).max(6),
   avoid: z.array(z.string().max(120)).max(30),
 });

@@ -4,9 +4,10 @@ Plan a week of dinners from the grocery offers at your Swedish stores, within yo
 
 1. **Pick your stores.** Search a city, area or postcode, or use your location. Then choose up to six stores on the map or in the list.
 2. **Set your goals:** total budget, calories per portion, portions per meal and number of meals. You can also choose vegetarian only.
-3. **Get a meal plan.** The app prices every recipe against this week's offers. It adjusts portion sizes towards your calorie goal and picks varied meals that fit your budget. Swap any meal you don't like.
-4. **Create AI recipes (optional).** Claude invents new recipes around what's on offer. The app prices them the same way as the built-in ones.
-5. **Go shopping** with a checklist grouped by the store with the best price. You can copy it as text or print it.
+3. **Set your diet and allergies.** Choose everything, pescetarian, vegetarian or vegan. Leave out allergens and food types: gluten, dairy/lactose, egg, nuts, peanuts, soy, fish, shellfish, pork, beef and chicken. You can also avoid specific ingredients.
+4. **Get a meal plan.** The app prices every recipe against this week's offers. It adjusts portion sizes towards your calorie goal and picks varied meals that fit your budget. Swap any meal you don't like.
+5. **Create AI recipes (optional).** Claude invents new recipes around what's on offer, using only ingredients your diet allows. The app prices them the same way as the built-in ones.
+6. **Go shopping** with a checklist grouped by the store with the best price. You can copy it as text or print it.
 
 ## Getting started
 
@@ -49,6 +50,10 @@ To add another source (for example Matpriskollen, which sells aggregated price d
 2. Add it to `LIVE_PROVIDERS` in `src/lib/providers/index.ts`.
 
 Offers are matched to recipe ingredients by keyword (`src/lib/ingredients.ts`, `src/lib/matching.ts`). Two guards stop bad matches: an offer only counts if its price per kg/l/piece is a real discount, and it must be in a plausible range.
+
+## Diets and allergies
+
+Each catalog ingredient is tagged with what it is or contains (`INGREDIENT_TAGS` in `src/lib/ingredients.ts`). For example, pesto contains nuts and dairy, and Japanese soy sauce contains soy and gluten. A recipe is only planned if every ingredient is allowed, pantry staples included. AI recipes are generated from the allowed ingredients only and are checked again afterwards. Tags describe typical products, so always check labels if an allergy is serious.
 
 ## How prices and calories work
 

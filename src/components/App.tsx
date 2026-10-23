@@ -1,12 +1,14 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { isRecipeAllowed, NO_RESTRICTIONS, withDietDefaults } from "@/lib/diet";
 import { getIngredient } from "@/lib/ingredients";
 import { planMeals } from "@/lib/planner";
 import { buildPriceTable } from "@/lib/pricing";
 import { RECIPES } from "@/lib/recipes";
 import { buildShoppingList } from "@/lib/shoppingList";
 import type { DataSource, Offer, PlanSettings, Recipe, Store, StoreWithDistance } from "@/lib/types";
+import DietForm from "./DietForm";
 import GoalsForm from "./GoalsForm";
 import MealPlanView from "./MealPlanView";
 import OffersView from "./OffersView";
@@ -21,7 +23,7 @@ const DEFAULT_SETTINGS: PlanSettings = {
   kcalPerServing: 650,
   servings: 4,
   meals: 5,
-  vegetarian: false,
+  ...NO_RESTRICTIONS,
   havePantry: true,
 };
 
@@ -34,7 +36,9 @@ export default function App() {
   const [place, setPlace] = usePersistentState<Place | null>("rc.place", DEFAULT_PLACE);
   const [radiusKm, setRadiusKm] = usePersistentState("rc.radius", 5);
   const [selected, setSelected, selectedLoaded] = usePersistentState<Store[]>("rc.stores", []);
-  const [settings, setSettings] = usePersistentState<PlanSettings>("rc.settings", DEFAULT_SETTINGS);
+  const [savedSettings, setSettings] = usePersistentState<PlanSettings>("rc.settings", DEFAULT_SETTINGS);
+  // Settings saved by older versions lack the diet fields.
+  const settings = useMemo(() => withDietDefaults({ ...DEFAULT_SETTINGS, ...savedSettings }), [savedSettings]);
   const [aiRecipes, setAiRecipes] = usePersistentState<Recipe[]>("rc.aiRecipes", []);
   const [excluded, setExcluded] = usePersistentState<string[]>("rc.excluded", []);
   const [checked, setChecked] = usePersistentState<Record<string, boolean>>("rc.checked", {});
@@ -152,7 +156,9 @@ export default function App() {
           offerKeys,
           kcalPerServing: settings.kcalPerServing,
           budgetPerServing: Math.max(1, settings.budget / Math.max(1, settings.meals * settings.servings)),
-          vegetarian: settings.vegetarian,
+          diet: settings.diet,
+          exclude: settings.exclude,
+          avoidIngredients: settings.avoidIngredients,
           count: 3,
           avoid: allRecipes.map((r) => r.name).slice(0, 30),
         }),
@@ -206,6 +212,14 @@ export default function App() {
           <div className="rounded-xl border border-border bg-surface p-4">
             <GoalsForm settings={settings} onChange={setSettings} />
           </div>
+          <div className="rounded-xl border border-border bg-surface p-4">
+            <DietForm
+              settings={settings}
+              onChange={(patch) => setSettings({ ...settings, ...patch })}
+              matching={allRecipes.filter((r) => isRecipeAllowed(r, settings)).length}
+              total={allRecipes.length}
+            />
+          </div>
         </aside>
 
         <main className="min-w-0">
@@ -243,7 +257,13 @@ export default function App() {
           )}
           {tab === "list" && <ShoppingListView groups={shoppingGroups} checked={checked} onCheckedChange={setChecked} />}
           {tab === "offers" && (
-            <OffersView offers={offers} stores={selected} loading={offersLoading} notices={offerNotices} />
+            <OffersView
+              offers={offers}
+              stores={selected}
+              loading={offersLoading}
+              notices={offerNotices}
+              dietSettings={settings}
+            />
           )}
         </main>
       </div>
