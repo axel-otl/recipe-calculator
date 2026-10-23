@@ -3,7 +3,7 @@
 Plan a week of dinners from the grocery offers at your Swedish stores, within your budget and calorie goal, and get a shopping list grouped by store.
 
 1. **Pick your stores.** Search a city, area or postcode, or use your location. Then choose up to six stores on the map or in the list.
-2. **Set your goals:** total budget, calories per portion, portions per meal and number of meals. You can also choose vegetarian only.
+2. **Set your goals:** total budget, calories per portion, portions per meal and number of meals.
 3. **Set your diet and allergies.** Choose everything, pescetarian, vegetarian or vegan. Leave out allergens and food types: gluten, dairy/lactose, egg, nuts, peanuts, soy, fish, shellfish, pork, beef and chicken. You can also avoid specific ingredients.
 4. **Get a meal plan.** The app prices every recipe against this week's offers. It adjusts portion sizes towards your calorie goal and picks varied meals that fit your budget. Swap any meal you don't like.
 5. **Create AI recipes (optional).** Claude invents new recipes around what's on offer, using only ingredients your diet allows. The app prices them the same way as the built-in ones.
